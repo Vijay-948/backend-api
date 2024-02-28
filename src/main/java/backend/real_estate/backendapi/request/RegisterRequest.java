@@ -1,5 +1,6 @@
 package backend.real_estate.backendapi.request;
 
+import backend.real_estate.backendapi.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
