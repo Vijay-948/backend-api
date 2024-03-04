@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -64,29 +65,30 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) throws userNameNotFoundException {
-        Optional<UserBo> email = userRepository.findByEmail(request.getEmail());
+        Optional<UserBo> emailOptional = userRepository.findByEmail(request.getEmail());
 
-        if(email.isEmpty()){
-            throw new userNameNotFoundException("Invalid username");
+        if(emailOptional.isEmpty()){
+            throw new userNameNotFoundException("Invalid username or password");
         }
 
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    )
-            );
-
-            var user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new userNameNotFoundException("Invalid User"));
-
-            var jwtToken = jwtService.generateToken(user);
-            return AuthenticationResponse.builder()
-                    .token(jwtToken)
-                    .build();
-        }catch(AuthenticationException e){
-            throw new BadCredentialsException("Invalid username or password");
+        UserBo user = emailOptional.get();
+        BCryptPasswordEncoder passwordEncoder1 = new BCryptPasswordEncoder();
+        if (emailOptional.isPresent() && !passwordEncoder1.matches(request.getPassword(), user.getPassword())) {
+            throw new userNameNotFoundException("Invalid password");
         }
+
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+
     }
 }
