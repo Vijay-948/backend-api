@@ -1,6 +1,8 @@
 package backend.real_estate.backendapi.service.impl;
 
 import backend.real_estate.backendapi.ExceptionHandling.EmailAlreadyExistException;
+import backend.real_estate.backendapi.ExceptionHandling.InvalidEmailException;
+import backend.real_estate.backendapi.ExceptionHandling.NoSuchFieldException;
 import backend.real_estate.backendapi.ExceptionHandling.userNameNotFoundException;
 import backend.real_estate.backendapi.entity.Role;
 import backend.real_estate.backendapi.entity.UserBo;
@@ -9,6 +11,7 @@ import backend.real_estate.backendapi.request.AuthenticationRequest;
 import backend.real_estate.backendapi.request.AuthenticationResponse;
 import backend.real_estate.backendapi.request.RegisterRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -36,14 +39,28 @@ public class AuthenticationService {
     @Autowired
     private final AuthenticationManager authenticationManager;
 
-//    public AuthenticationService(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService){
-//        this.authenticationManager = authenticationManager;
-//        this.userRepository = userRepository;
-//        this.passwordEncoder = passwordEncoder;
-//        this.jwtService = jwtService;
-//    }
+    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException {
 
-    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException {
+        if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
+            throw new NoSuchFieldException("All fields are required");
+        }
+
+        if(request.getFirstName().length() < 3){
+            throw new NoSuchFieldException("First name should be at least three characters");
+        }
+
+        if(request.getLastName().length() < 4){
+            throw new EmailAlreadyExistException("Last name should be at least four characters");
+        }
+
+        if(!isValidEmail(request.getEmail())){
+            throw new InvalidEmailException("Invalid email format");
+        }
+
+        if (!request.getEmail().toLowerCase().endsWith("@gmail.com")) {
+            throw new IllegalArgumentException("Email must end with '@gmail.com'");
+        }
+
         Optional<UserBo> existingEmail = userRepository.findByEmail(request.getEmail());
 
         if(existingEmail.isPresent()){
@@ -86,9 +103,15 @@ public class AuthenticationService {
         );
 
         var jwtToken = jwtService.generateToken(user);
+        Optional<UserBo> userBo = userRepository.findByEmail(request.getEmail());
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
 
+    }
+
+    public boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@gmail\\.com$";
+        return email.matches(emailRegex);
     }
 }

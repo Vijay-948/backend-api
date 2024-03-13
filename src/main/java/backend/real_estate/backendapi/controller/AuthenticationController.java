@@ -2,6 +2,8 @@ package backend.real_estate.backendapi.controller;
 
 
 import backend.real_estate.backendapi.ExceptionHandling.EmailAlreadyExistException;
+import backend.real_estate.backendapi.ExceptionHandling.InvalidEmailException;
+import backend.real_estate.backendapi.ExceptionHandling.NoSuchFieldException;
 import backend.real_estate.backendapi.ExceptionHandling.userNameNotFoundException;
 import backend.real_estate.backendapi.entity.UserBo;
 import backend.real_estate.backendapi.repository.UserRepository;
@@ -29,7 +31,7 @@ public class AuthenticationController {
         try{
             AuthenticationResponse response = service.register(request);
             return ResponseEntity.ok(response);
-        }catch (EmailAlreadyExistException e){
+        }catch (EmailAlreadyExistException | NoSuchFieldException | InvalidEmailException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 
