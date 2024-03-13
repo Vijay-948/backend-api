@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class AuthenticationResponse {
-
     private String token;
 
 }
