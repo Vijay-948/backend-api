@@ -1,9 +1,7 @@
 package backend.real_estate.backendapi.service.impl;
 
-import backend.real_estate.backendapi.ExceptionHandling.EmailAlreadyExistException;
-import backend.real_estate.backendapi.ExceptionHandling.InvalidEmailException;
+import backend.real_estate.backendapi.ExceptionHandling.*;
 import backend.real_estate.backendapi.ExceptionHandling.NoSuchFieldException;
-import backend.real_estate.backendapi.ExceptionHandling.userNameNotFoundException;
 import backend.real_estate.backendapi.entity.Role;
 import backend.real_estate.backendapi.entity.UserBo;
 import backend.real_estate.backendapi.repository.UserRepository;
@@ -39,7 +37,7 @@ public class AuthenticationService {
     @Autowired
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException {
+    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
 
         if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
             throw new NoSuchFieldException("All fields are required");
@@ -59,6 +57,10 @@ public class AuthenticationService {
 
         if (!request.getEmail().toLowerCase().endsWith("@gmail.com")) {
             throw new IllegalArgumentException("Email must end with '@gmail.com'");
+        }
+
+        if(!isValidPassword(request.getPassword())){
+            throw new InvalidPasswordException("Invalid Password format");
         }
 
         Optional<UserBo> existingEmail = userRepository.findByEmail(request.getEmail());
@@ -113,5 +115,10 @@ public class AuthenticationService {
     public boolean isValidEmail(String email) {
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@gmail\\.com$";
         return email.matches(emailRegex);
+    }
+
+    public boolean isValidPassword(String password) {
+        String passwordPattern = "^(?!\\s)(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@#$%^&+=!])(?!.*\\s).{8}$";
+        return password.matches(passwordPattern);
     }
 }
