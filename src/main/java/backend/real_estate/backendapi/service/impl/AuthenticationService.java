@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -59,9 +60,9 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Email must end with '@gmail.com'");
         }
 
-        if(!isValidPassword(request.getPassword())){
-            throw new InvalidPasswordException("Invalid Password format");
-        }
+//        if(!isValidPassword(request.getPassword())){
+//            throw new InvalidPasswordException("Invalid Password format");
+//        }
 
         Optional<UserBo> existingEmail = userRepository.findByEmail(request.getEmail());
 
@@ -84,32 +85,28 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) throws userNameNotFoundException {
-        Optional<UserBo> emailOptional = userRepository.findByEmail(request.getEmail());
+        try {
+            System.out.println("Received AuthenticationRequest: " + request.getEmail());
 
-        if(emailOptional.isEmpty()){
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+
+            UserBo user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new userNameNotFoundException("Invalid username or password"));
+
+            String jwtToken = jwtService.generateToken(user);
+
+            return AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build();
+        } catch (AuthenticationException ex) {
             throw new userNameNotFoundException("Invalid username or password");
         }
-
-        UserBo user = emailOptional.get();
-        BCryptPasswordEncoder passwordEncoder1 = new BCryptPasswordEncoder();
-        if (emailOptional.isPresent() && !passwordEncoder1.matches(request.getPassword(), user.getPassword())) {
-            throw new userNameNotFoundException("Invalid password");
-        }
-
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
-        var jwtToken = jwtService.generateToken(user);
-        Optional<UserBo> userBo = userRepository.findByEmail(request.getEmail());
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
-
     }
 
     public boolean isValidEmail(String email) {
@@ -117,8 +114,8 @@ public class AuthenticationService {
         return email.matches(emailRegex);
     }
 
-    public boolean isValidPassword(String password) {
-        String passwordPattern = "^(?!\\s)(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@#$%^&+=!])(?!.*\\s).{8}$";
-        return password.matches(passwordPattern);
-    }
+//    public boolean isValidPassword(String password) {
+//        String passwordPattern = "^(?!\\s)(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@#$%^&+=!])(?!.*\\s).{8}$";
+//        return password.matches(passwordPattern);
+//    }
 }
