@@ -36,7 +36,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("/authenticate")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) throws userNameNotFoundException {
         try{
             AuthenticationResponse response = service.login(request);

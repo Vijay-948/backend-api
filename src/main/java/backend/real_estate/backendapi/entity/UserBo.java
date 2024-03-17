@@ -1,10 +1,7 @@
 package backend.real_estate.backendapi.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +27,8 @@ public class UserBo implements UserDetails {
     @Column(name="last_name")
     private String lastName;
 
-    @Column(name = "email")
+    @NonNull
+    @Column(name = "email", nullable = false)
     private String email;
 
     @Column(name = "password")
