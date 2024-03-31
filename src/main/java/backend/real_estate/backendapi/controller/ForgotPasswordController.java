@@ -1,35 +1,29 @@
 package backend.real_estate.backendapi.controller;
 
 
+import backend.real_estate.backendapi.request.ForgotPasswordRequest;
+import backend.real_estate.backendapi.service.impl.ForgotPasswordService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Random;
-
 @RestController
+@RequestMapping("/forgot")
 public class ForgotPasswordController {
 
-    @PostMapping("/forgot")
-    public String forgotPassword(){
-        return "";
+    private final ForgotPasswordService forgotPasswordService;
+
+
+    @Autowired
+    public ForgotPasswordController(ForgotPasswordService forgotPasswordService) {
+        this.forgotPasswordService = forgotPasswordService;
     }
 
-
-
-
-
-    @PostMapping("/generateOtp")
-    public String generateOTP(@RequestParam("email") String email){
-        System.out.println("email " + email);
-
-        Random random = new Random(100001);
-        int otp = random.nextInt(999999);
-
-        System.out.println("OTP" + otp);
-
-        return "verify_OTP";
-
+    @PostMapping("/password")
+    public ResponseEntity<String> forgotPassword(ForgotPasswordRequest forgotPasswordRequest){
+        forgotPasswordService.sendOtpToEmail(forgotPasswordRequest.getEmail());
+        return ResponseEntity.ok("Otp Sent Successfully");
     }
-
 }
