@@ -37,7 +37,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth->auth
-                        .requestMatchers("/api/v1/auth/**")
+                        .requestMatchers("/api/v1/auth/", "/forgot/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated()
@@ -45,54 +45,10 @@ public class SecurityConfig {
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-//                        .cors().configurationSource(new CorsConfigurationSource() {
-//                        @Override
-//                        public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-//                            CorsConfiguration cfg = new CorsConfiguration();
-//                            cfg.setAllowedOrigins(List.of("http://localhost:3000"));
-//                            cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "Authorization", "Content-Type", "Accept"));
-//                            return cfg;
-//                        }
-//                    });
 
         return http.build();
     }
 
-//    @Bean
-//    public FilterRegistrationBean coresFilter() {
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//
-//        CorsConfiguration corsConfiguration = new CorsConfiguration();
-//        corsConfiguration.setAllowCredentials(true);
-//        corsConfiguration.addAllowedOriginPattern("*");
-//        corsConfiguration.addAllowedHeader("Authorization");
-//        corsConfiguration.addAllowedHeader("Content-Type");
-//        corsConfiguration.addAllowedHeader("Accept");
-//        corsConfiguration.addAllowedHeader("POST");
-//        corsConfiguration.addAllowedHeader("GET");
-//        corsConfiguration.addAllowedHeader("PUT");
-//        corsConfiguration.addAllowedHeader("DELETE");
-//        corsConfiguration.addAllowedHeader("OPTIONS");
-//        corsConfiguration.setMaxAge(3600L);
-//
-//        source.registerCorsConfiguration("/**", corsConfiguration);
-//
-//        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-//
-//        return bean;
-//
-//    }
-
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000/"));
-//        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "Accept"));
-//        configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {

@@ -1,5 +1,6 @@
 package backend.real_estate.backendapi.service.impl;
 
+import backend.real_estate.backendapi.ExceptionHandling.ForgotPasswordExpection;
 import backend.real_estate.backendapi.entity.UserBo;
 import backend.real_estate.backendapi.repository.UserRepository;
 import backend.real_estate.backendapi.service.EmailService;
@@ -21,18 +22,20 @@ public class ForgotPasswordService {
         this.emailService = emailService;
     }
 
-    public void sendOtpToEmail(String email){
-        Optional<UserBo> user = userRepository.findByEmail(email);
+    public void sendOtpToEmail(String email) throws ForgotPasswordExpection {
+        Optional<UserBo> userOptional = userRepository.findByEmail(email);
 
-        if(user == null){
-            throw new NotFoundException("hfjadkfaksg");
+        if(userOptional.isPresent()){
+            UserBo user = userOptional.get();
+            String otp = generateOTP();
+            sendOtpByEmail(email, otp);
+        } else {
+            throw  new ForgotPasswordExpection("Invalid email " + email);
         }
-
-        String otp = generateOTP();
     }
 
     private String generateOTP() {
-        Random random = new Random(100001);
+        Random random = new Random();
         int otp = random.nextInt(999999);
 
         String otpString = String.valueOf(otp);
