@@ -3,6 +3,7 @@ package backend.real_estate.backendapi.controller;
 
 import backend.real_estate.backendapi.ExceptionHandling.ForgotPasswordExpection;
 import backend.real_estate.backendapi.request.ForgotPasswordRequest;
+import backend.real_estate.backendapi.request.VerifyOtp;
 import backend.real_estate.backendapi.service.impl.ForgotPasswordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,16 @@ public class ForgotPasswordController {
             forgotPasswordService.sendOtpToEmail(forgotPasswordRequest.getEmail());
             return ResponseEntity.ok("Otp Sent Successfully");
 
+        }catch (ForgotPasswordExpection e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/verifyOtp")
+    public ResponseEntity<String> verifyOtp(VerifyOtp verifyOtp){
+        try{
+            forgotPasswordService.verifyOtp(verifyOtp);
+            return ResponseEntity.ok("OTP Verified Successfully");
         }catch (ForgotPasswordExpection e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
