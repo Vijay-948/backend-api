@@ -3,6 +3,7 @@ package backend.real_estate.backendapi.service.impl;
 import backend.real_estate.backendapi.ExceptionHandling.ForgotPasswordExpection;
 import backend.real_estate.backendapi.entity.UserBo;
 import backend.real_estate.backendapi.repository.UserRepository;
+import backend.real_estate.backendapi.request.VerifyOtp;
 import backend.real_estate.backendapi.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ public class ForgotPasswordService {
         if(userOptional.isPresent()){
             UserBo user = userOptional.get();
             String otp = generateOTP();
+            user.setOtp(otp);
+            userRepository.save(user);
             sendOtpByEmail(email, otp);
         } else {
             throw  new ForgotPasswordExpection("Invalid email " + email);
@@ -50,6 +53,22 @@ public class ForgotPasswordService {
         String body = "Your Otp" + otp;
 
         emailService.sendEmail(email, subject, body);
+    }
+
+    public void verifyOtp(VerifyOtp verifyOtp) throws ForgotPasswordExpection{
+        Optional<UserBo> user = userRepository.findByEmail(verifyOtp.getOtp());
+
+        String userEnteredOtp = verifyOtp.getOtp();
+        String storedOtp = String.valueOf(user.get());
+
+        if(!userEnteredOtp.equals(storedOtp)){
+            throw new ForgotPasswordExpection("Invalid OTP");
+        }
+        
+//        user.setOtp(null);
+
+//        userRepository.save(user);
+
     }
 
 }

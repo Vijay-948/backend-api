@@ -34,6 +34,9 @@ public class UserBo implements UserDetails {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "One-time_password")
+    private String otp;
+
     @Enumerated(EnumType.ORDINAL)
     private Role role;
 
@@ -71,4 +74,6 @@ public class UserBo implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 }
