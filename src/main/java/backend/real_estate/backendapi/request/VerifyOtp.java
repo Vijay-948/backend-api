@@ -10,5 +10,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VerifyOtp {
+    private String email;
     private String otp;
+
+    public String getEmail() {
+        return this.email;
+    }
 }
