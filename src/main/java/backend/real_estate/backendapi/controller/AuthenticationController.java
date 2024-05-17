@@ -3,6 +3,7 @@ package backend.real_estate.backendapi.controller;
 
 import backend.real_estate.backendapi.ExceptionHandling.*;
 import backend.real_estate.backendapi.ExceptionHandling.NoSuchFieldException;
+import backend.real_estate.backendapi.dto.OtpDto;
 import backend.real_estate.backendapi.entity.UserBo;
 import backend.real_estate.backendapi.repository.UserRepository;
 import backend.real_estate.backendapi.request.AuthenticationRequest;
@@ -25,15 +26,27 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) throws Exception{
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) throws Exception{
         try{
-            AuthenticationResponse response = service.register(request);
-            return ResponseEntity.ok(response);
+            service.register(request);
+            return ResponseEntity.ok("OTP Sent Successfully");
         }catch (EmailAlreadyExistException | NoSuchFieldException | InvalidEmailException | InvalidPasswordException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 
     }
+
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyOTP(@RequestBody OtpDto otpDto){
+        try{
+            service.verifyOtp(otpDto);
+            return ResponseEntity.ok("OTP verified Successfully");
+        }catch (InvalidCredentialException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+    }
+
+
 
 
     @PostMapping("/login")
