@@ -13,18 +13,14 @@ import backend.real_estate.backendapi.request.AuthenticationResponse;
 import backend.real_estate.backendapi.request.RegisterRequest;
 import backend.real_estate.backendapi.service.EmailService;
 import backend.real_estate.backendapi.service.OtpAuthService;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
@@ -53,11 +49,11 @@ public class AuthenticationService implements OtpAuthService {
 
     @Autowired OtpRepository otpRepository;
 
-    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
+    public void register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
 
-//        if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
-//            throw new NoSuchFieldException("All fields are required");
-//        }
+        if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
+            throw new NoSuchFieldException("All fields are required");
+        }
 //
 //        if(request.getFirstName().length() < 3){
 //            throw new NoSuchFieldException("First name should be at least three characters");
@@ -67,13 +63,13 @@ public class AuthenticationService implements OtpAuthService {
 //            throw new EmailAlreadyExistException("Last name should be at least four characters");
 //        }
 //
-//        if(!isValidEmail(request.getEmail())){
-//            throw new InvalidEmailException("Invalid email format");
-//        }
-//
-//        if (!request.getEmail().toLowerCase().endsWith("@gmail.com")) {
-//            throw new IllegalArgumentException("Email must end with '@gmail.com'");
-//        }
+        if(!isValidEmail(request.getEmail())){
+            throw new InvalidEmailException("Invalid email format");
+        }
+
+        if (!request.getEmail().toLowerCase().endsWith("@gmail.com")) {
+            throw new IllegalArgumentException("Email must end with '@gmail.com'");
+        }
 
 //        if(!isValidPassword(request.getPassword())){
 //            throw new InvalidPasswordException("Invalid Password format");
@@ -87,19 +83,6 @@ public class AuthenticationService implements OtpAuthService {
 //        }
 
         sendVerificationCode(request.getEmail());
-
-        var user = UserBo.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
-                .build();
-        userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) throws userNameNotFoundException {
@@ -150,7 +133,7 @@ public class AuthenticationService implements OtpAuthService {
             content = content.replace("[OTP]", otp);
             content = content.replace("[NAME]", userBo.getFirstName() + " " + userBo.getLastName());
 
-            emailService.sendEmail(Collections.singletonList(email).toString(), subject, content);
+            emailService.sendEmail(email, subject, content);
 
             OtpBO otpBO = new OtpBO();
             otpBO.setEmail(email);
@@ -168,7 +151,7 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     @Override
-    public void verifyOtp(OtpDto otpDto) {
+    public AuthenticationResponse verifyOtp(OtpDto otpDto) {
 
         Optional<OtpBO> optionalOtpBO = otpRepository.findByEmail(otpDto.getEmail());
 
@@ -187,10 +170,45 @@ public class AuthenticationService implements OtpAuthService {
         boolean isValid = isWithinTimeDiff(otpTimeStamp);
 
         if(!isValid){
-            throw new InvalidCredentialException("Invalid OTP");
+            throw new InvalidCredentialException("OTP Expiried Please go back click on send otp");
         }
+//        RegisterRequest request = new RegisterRequest();
+//        var userDetails = UserBo.builder()
+//                .firstName(request.getFirstName())
+//                .lastName(request.getLastName())
+//                .email(request.getEmail())
+//                .password(passwordEncoder.encode(request.getPassword()))
+//                .role(Role.USER)
+//                .build();
+//        userRepository.save(userDetails);
+//        var jwtToken = jwtService.generateToken(userDetails);
+//        AuthenticationResponse.builder()
+//                .token(jwtToken)
+//                .build();
+        RegisterRequest request = new RegisterRequest();
+        UserBo userDetails = UserBo.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(otpDto.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
+                .build();
 
-        otpRepository.delete(user);
+        userRepository.save(userDetails);
+
+        String jwtToken = jwtService.generateToken(userDetails);
+
+        // Clean up the OTP record
+//        otpRepository.delete(userOtpBo);
+//        otpRepository.delete(user);
+
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+
+
+
+
     }
 
     private boolean isWithinTimeDiff(Date otpTimeStamp){
