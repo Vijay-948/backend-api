@@ -7,5 +7,5 @@ public interface OtpAuthService {
 
     void sendVerificationCode(String email);
 
-    AuthenticationResponse verifyOtp(OtpDto otpDto);
+    void verifyOtp(OtpDto otpDto);
 }

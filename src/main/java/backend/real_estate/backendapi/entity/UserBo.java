@@ -34,8 +34,8 @@ public class UserBo implements UserDetails {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "One-time_password")
-    private String otp;
+    @Column(name = "is_active")
+    private Boolean active;
 
     @Enumerated(EnumType.ORDINAL)
     private Role role;

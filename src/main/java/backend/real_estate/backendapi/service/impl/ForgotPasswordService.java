@@ -1,6 +1,7 @@
 package backend.real_estate.backendapi.service.impl;
 
 import backend.real_estate.backendapi.ExceptionHandling.ForgotPasswordExpection;
+import backend.real_estate.backendapi.entity.OtpBO;
 import backend.real_estate.backendapi.entity.UserBo;
 import backend.real_estate.backendapi.repository.UserRepository;
 import backend.real_estate.backendapi.request.ResetPassword;
@@ -34,15 +35,15 @@ public class ForgotPasswordService {
     public void sendOtpToEmail(String email) throws ForgotPasswordExpection {
         Optional<UserBo> userOptional = userRepository.findByEmail(email);
 
-        if(userOptional.isPresent()){
-            UserBo user = userOptional.get();
-            String otp = generateOTP();
-            user.setOtp(otp);
-            userRepository.save(user);
-            sendOtpByEmail(email, otp);
-        } else {
-            throw  new ForgotPasswordExpection("Invalid email " + email);
-        }
+//        if(userOptional.isPresent()){
+//            OtpBO user = userOptional.get();
+//            String otp = generateOTP();
+//            user.setOtp(otp);
+//            userRepository.save(user);
+//            sendOtpByEmail(email, otp);
+//        } else {
+//            throw  new ForgotPasswordExpection("Invalid email " + email);
+//        }
     }
 
     private String generateOTP() {
@@ -68,17 +69,17 @@ public class ForgotPasswordService {
         String userEnteredOtp = verifyOtp.getOtp();
         Optional<UserBo> user = userRepository.findByEmail(userEmail);
 
-        if(user.isPresent()){
-            UserBo userBo = user.get();
-            String storedOtp = userBo.getOtp();
-
-            if(!userEnteredOtp.equals(storedOtp)){
-                throw new ForgotPasswordExpection("Invalid Otp");
-            }
-
-            userBo.setOtp(null);
-            userRepository.save(userBo);
-        }
+//        if(user.isPresent()){
+//            UserBo userBo = user.get();
+//            String storedOtp = userBo.getOtp();
+//
+//            if(!userEnteredOtp.equals(storedOtp)){
+//                throw new ForgotPasswordExpection("Invalid Otp");
+//            }
+//
+//            userBo.setOtp(null);
+//            userRepository.save(userBo);
+//        }
 
         // this method is only for verifying only otp based not an email;
 //        String userEnteredOtp = verifyOtp.getOtp();

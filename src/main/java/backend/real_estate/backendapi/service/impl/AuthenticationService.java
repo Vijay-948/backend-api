@@ -49,7 +49,7 @@ public class AuthenticationService implements OtpAuthService {
 
     @Autowired OtpRepository otpRepository;
 
-    public void register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
+    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
 
         if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
             throw new NoSuchFieldException("All fields are required");
@@ -81,8 +81,24 @@ public class AuthenticationService implements OtpAuthService {
 //            throw new EmailAlreadyExistException("Email is Already exists");
 //
 //        }
+        var user = UserBo.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .active(true)
+                .role(Role.ADMIN)
+                .build();
+        userRepository.save(user);
 
         sendVerificationCode(request.getEmail());
+
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+
+//        sendVerificationCode(request.getEmail());
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) throws userNameNotFoundException {
@@ -119,9 +135,9 @@ public class AuthenticationService implements OtpAuthService {
     public void sendVerificationCode(String email) {
 //        String email = otpRequest.get("email");
 
-//        Optional<UserBo> userBo = userRepository.findByEmail(email);
+        Optional<UserBo> optionalUserBo = userRepository.findByEmail(email);
 
-        UserBo userBo = new UserBo();
+        UserBo userBo = optionalUserBo.get();
 
         String subject = "One Time Password for Signup";
         String fileName = "otp_verification.html";
@@ -151,7 +167,7 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     @Override
-    public AuthenticationResponse verifyOtp(OtpDto otpDto) {
+    public void verifyOtp(OtpDto otpDto) {
 
         Optional<OtpBO> optionalOtpBO = otpRepository.findByEmail(otpDto.getEmail());
 
@@ -172,43 +188,8 @@ public class AuthenticationService implements OtpAuthService {
         if(!isValid){
             throw new InvalidCredentialException("OTP Expiried Please go back click on send otp");
         }
-//        RegisterRequest request = new RegisterRequest();
-//        var userDetails = UserBo.builder()
-//                .firstName(request.getFirstName())
-//                .lastName(request.getLastName())
-//                .email(request.getEmail())
-//                .password(passwordEncoder.encode(request.getPassword()))
-//                .role(Role.USER)
-//                .build();
-//        userRepository.save(userDetails);
-//        var jwtToken = jwtService.generateToken(userDetails);
-//        AuthenticationResponse.builder()
-//                .token(jwtToken)
-//                .build();
-        RegisterRequest request = new RegisterRequest();
-        UserBo userDetails = UserBo.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(otpDto.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
-                .build();
 
-        userRepository.save(userDetails);
-
-        String jwtToken = jwtService.generateToken(userDetails);
-
-        // Clean up the OTP record
-//        otpRepository.delete(userOtpBo);
-//        otpRepository.delete(user);
-
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
-
-
-
-
+        otpRepository.delete(user);
     }
 
     private boolean isWithinTimeDiff(Date otpTimeStamp){
