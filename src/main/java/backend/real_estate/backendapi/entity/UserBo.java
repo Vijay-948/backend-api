@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -39,6 +40,9 @@ public class UserBo implements UserDetails {
 
     @Enumerated(EnumType.ORDINAL)
     private Role role;
+
+    @Column(name = "created_on")
+    private Date createdOn;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -25,8 +25,8 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) throws Exception{
         try{
-            AuthenticationResponse response = service.register(request);
-            return ResponseEntity.ok("OTP Sent Successfully + token: " + response.getToken());
+            service.register(request);
+            return ResponseEntity.ok("OTP Sent Successfully ");
         }catch (EmailAlreadyExistException | NoSuchFieldException | InvalidEmailException | InvalidPasswordException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -34,9 +34,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public void verifyOTP(@RequestBody OtpDto otpDto){
+    public AuthenticationResponse verifyOTP(@RequestBody OtpDto otpDto){
 
-         service.verifyOtp(otpDto);
+         return service.verifyOtp(otpDto);
 //        try{
 //            return
 ////           return service.verifyOtp(otpDto);

@@ -21,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
@@ -45,11 +46,11 @@ public class AuthenticationService implements OtpAuthService {
     @Autowired
     private final AuthenticationManager authenticationManager;
 
-    @Autowired private EmailService emailService;
+    @Autowired private final EmailService emailService;
 
     @Autowired OtpRepository otpRepository;
 
-    public AuthenticationResponse register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
+    public void register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
 
         if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
             throw new NoSuchFieldException("All fields are required");
@@ -86,17 +87,15 @@ public class AuthenticationService implements OtpAuthService {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .active(true)
+                .active(false)
+                .createdOn(new Date())
                 .role(Role.ADMIN)
                 .build();
         userRepository.save(user);
 
         sendVerificationCode(request.getEmail());
 
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+
 
 //        sendVerificationCode(request.getEmail());
     }
@@ -167,7 +166,7 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     @Override
-    public void verifyOtp(OtpDto otpDto) {
+    public AuthenticationResponse verifyOtp(OtpDto otpDto) {
 
         Optional<OtpBO> optionalOtpBO = otpRepository.findByEmail(otpDto.getEmail());
 
@@ -186,10 +185,23 @@ public class AuthenticationService implements OtpAuthService {
         boolean isValid = isWithinTimeDiff(otpTimeStamp);
 
         if(!isValid){
-            throw new InvalidCredentialException("OTP Expiried Please go back click on send otp");
+            throw new InvalidCredentialException("OTP Expired Please go back click on send otp");
         }
 
+        UserBo user_data = userRepository.findByEmail(otpDto.getEmail()).orElseThrow(() -> new InvalidCredentialException("Email not Found"));
+
+        user_data.setActive(true);
+        userRepository.save(user_data);
+
         otpRepository.delete(user);
+//        RegisterRequest request = new RegisterRequest();
+
+//        var userBo = UserBo.builder().email(otpDto.getEmail());
+
+        var jwtToken = jwtService.generateToken(user_data);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
     }
 
     private boolean isWithinTimeDiff(Date otpTimeStamp){
