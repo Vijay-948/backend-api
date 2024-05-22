@@ -13,10 +13,12 @@ import backend.real_estate.backendapi.request.AuthenticationResponse;
 import backend.real_estate.backendapi.request.RegisterRequest;
 import backend.real_estate.backendapi.service.EmailService;
 import backend.real_estate.backendapi.service.OtpAuthService;
+import jakarta.mail.MessageRemovedException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
 import java.nio.charset.Charset;
@@ -229,4 +232,23 @@ public class AuthenticationService implements OtpAuthService {
 //        String passwordPattern = "^(?!\\s)(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@#$%^&+=!])(?!.*\\s).{8}$";
 //        return password.matches(passwordPattern);
 //    }
+
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void removeInactiveUsers() {
+        LocalDateTime localDateTime = LocalDateTime.now().minusHours(1);
+        Date cutOfDate = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        try{
+            List<UserBo> inactiveUsers = userRepository.findAllByInactiveUsers(cutOfDate);
+
+            if(!inactiveUsers.isEmpty()){
+                userRepository.deleteAll(inactiveUsers);
+            }
+        }catch (RuntimeException ex){
+            throw new InvalidCredentialException("Something went wrong");
+        }
+
+    }
 }
