@@ -17,6 +17,7 @@ import jakarta.mail.MessageRemovedException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -217,7 +218,7 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     public String generateOTP(int length){
-        String numbers = "0123456789";
+        String numbers = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         Random random = new Random();
         char[] otp = new char[length];
 
@@ -234,21 +235,20 @@ public class AuthenticationService implements OtpAuthService {
 //    }
 
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?") // Runs every day at midnight
     @Transactional
     public void removeInactiveUsers() {
-        LocalDateTime localDateTime = LocalDateTime.now().minusHours(1);
-        Date cutOfDate = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(1);
+        Date cutoffDate = Date.from(cutoffTime.atZone(ZoneId.systemDefault()).toInstant());
 
-        try{
-            List<UserBo> inactiveUsers = userRepository.findAllByInactiveUsers(cutOfDate);
-
-            if(!inactiveUsers.isEmpty()){
-                userRepository.deleteAll(inactiveUsers);
-            }
-        }catch (RuntimeException ex){
-            throw new InvalidCredentialException("Something went wrong");
+        List<UserBo> inactiveUsers = userRepository.findAllByActiveFalseAndCreatedOnBefore(cutoffDate);
+        if (!inactiveUsers.isEmpty()) {
+            userRepository.deleteAll(inactiveUsers);
+            System.out.println("Removed " + inactiveUsers.size() + " inactive users");
+        } else {
+            System.out.println("No inactive users to remove");
         }
-
     }
+
+
 }
