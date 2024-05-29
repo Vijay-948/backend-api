@@ -33,6 +33,11 @@ public class AuthenticationController {
 
     }
 
+    @PostMapping("/sent")
+    public void sentOTP(@RequestBody OtpDto otpDto){
+        service.sendVerificationCode(otpDto.getEmail());
+    }
+
     @PostMapping("/verify")
     public AuthenticationResponse verifyOTP(@RequestBody OtpDto otpDto){
 

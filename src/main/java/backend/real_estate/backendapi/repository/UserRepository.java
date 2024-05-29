@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<UserBo, Integer> {
 
     Optional<UserBo> findByEmail(String email);
 
+//    List<UserBo> findByEmailId(String email);
+
 //    List<UserBo> findAllByInactiveUsers(boolean active, Date createdOn);
 
 //    List<UserBo> findAllByactiveUsers(boolean b, Date cutOfDate);

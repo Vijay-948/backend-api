@@ -28,8 +28,8 @@ public class UserBo implements UserDetails {
     @Column(name="last_name")
     private String lastName;
 
-    @NonNull
-    @Column(name = "email", nullable = false)
+
+    @Column(name = "email")
     private String email;
 
     @Column(name = "password")

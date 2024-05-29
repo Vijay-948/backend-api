@@ -80,25 +80,31 @@ public class AuthenticationService implements OtpAuthService {
 //            throw new InvalidPasswordException("Invalid Password format");
 //        }
 
-//        Optional<UserBo> existingEmail = userRepository.findByEmail(request.getEmail());
-//
-//        if(existingEmail.isPresent()){
-//            throw new EmailAlreadyExistException("Email is Already exists");
-//
-//        }
-        var user = UserBo.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .active(false)
-                .createdOn(new Date())
-                .role(Role.ADMIN)
-                .build();
-        userRepository.save(user);
+        UserBo existingEmail = userRepository.findByEmail(request.getEmail()).get();
 
-        sendVerificationCode(request.getEmail());
+        if(!existingEmail.getEmail().isEmpty()){
+            if(!existingEmail.getActive()){
+                sendVerificationCode(existingEmail.getEmail());
 
+            }else{
+                throw new EmailAlreadyExistException("Email is Already exists. Please go to Login Page");
+            }
+
+
+        }else {
+            var user = UserBo.builder()
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .active(false)
+                    .createdOn(new Date())
+                    .role(Role.ADMIN)
+                    .build();
+            userRepository.save(user);
+
+            sendVerificationCode(request.getEmail());
+        }
 
 
 //        sendVerificationCode(request.getEmail());
@@ -135,7 +141,7 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     @Override
-    public void sendVerificationCode(String email) {
+    public void  sendVerificationCode(String email) {
 //        String email = otpRequest.get("email");
 
         Optional<UserBo> optionalUserBo = userRepository.findByEmail(email);
