@@ -19,5 +19,5 @@ public interface UserRepository extends JpaRepository<UserBo, Integer> {
 
 //    List<UserBo> findAllByactiveUsers(boolean b, Date cutOfDate);
 
-    List<UserBo> findAllByActiveFalseAndCreatedOnBefore(Date cutoffDate);
+    List<UserBo> findAllByActiveFalseAndCreatedOnBefore(Date date);;
 }

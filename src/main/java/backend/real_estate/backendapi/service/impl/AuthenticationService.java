@@ -245,21 +245,23 @@ public class AuthenticationService implements OtpAuthService {
 //        return password.matches(passwordPattern);
 //    }
 
-
-    @Scheduled(cron = "0 0 0 * * ?") // Runs every day at midnight
+    // Scheduled method to delete unverified users
+//    @Scheduled(cron = "0 0 0 * * ?") // This cron expression means the task will run every day at midnight
+    @Scheduled(cron = "0 * * * * *") // This cron expression means the task will run every minute
     @Transactional
-    public void removeInactiveUsers() {
-        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(1);
-        Date cutoffDate = Date.from(cutoffTime.atZone(ZoneId.systemDefault()).toInstant());
+    public void deleteUnverifiedUsers() {
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusMinutes(1);
+        List<UserBo> unverifiedUsers = userRepository.findAllByActiveFalseAndCreatedOnBefore(Date.from(oneWeekAgo.atZone(ZoneId.systemDefault()).toInstant()));
 
-        List<UserBo> inactiveUsers = userRepository.findAllByActiveFalseAndCreatedOnBefore(cutoffDate);
-        if (!inactiveUsers.isEmpty()) {
-            userRepository.deleteAll(inactiveUsers);
-            System.out.println("Removed " + inactiveUsers.size() + " inactive users");
-        } else {
-            System.out.println("No inactive users to remove");
+        for (UserBo user : unverifiedUsers) {
+            userRepository.delete(user);
         }
+
+        System.out.println("Deleted unverified users: " + unverifiedUsers.size());
     }
+
+
+
 
 
 }
