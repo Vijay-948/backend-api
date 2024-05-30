@@ -80,11 +80,12 @@ public class AuthenticationService implements OtpAuthService {
 //            throw new InvalidPasswordException("Invalid Password format");
 //        }
 
-        UserBo existingEmail = userRepository.findByEmail(request.getEmail()).get();
+        Optional<UserBo> existingEmail = userRepository.findByEmail(request.getEmail());
 
-        if(!existingEmail.getEmail().isEmpty()){
-            if(!existingEmail.getActive()){
-                sendVerificationCode(existingEmail.getEmail());
+        if(!existingEmail.isEmpty()){
+            UserBo email = existingEmail.get();
+            if(!email.getActive()){
+                sendVerificationCode(email.getEmail());
 
             }else{
                 throw new EmailAlreadyExistException("Email is Already exists. Please go to Login Page");
@@ -110,7 +111,7 @@ public class AuthenticationService implements OtpAuthService {
 //        sendVerificationCode(request.getEmail());
     }
 
-    public AuthenticationResponse login(AuthenticationRequest request) throws userNameNotFoundException {
+    public AuthenticationResponse  login(AuthenticationRequest request) throws userNameNotFoundException {
         try {
             System.out.println("Received AuthenticationRequest: " + request.getEmail());
 
@@ -124,6 +125,10 @@ public class AuthenticationService implements OtpAuthService {
 
             UserBo user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new userNameNotFoundException("Invalid username or password"));
+
+            if(!user.getActive()){
+                throw new InvalidCredentialException("Invalid username or password");
+            }
 
             String jwtToken = jwtService.generateToken(user);
 

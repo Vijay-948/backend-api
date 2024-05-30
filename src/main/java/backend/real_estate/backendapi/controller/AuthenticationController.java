@@ -60,7 +60,7 @@ public class AuthenticationController {
             AuthenticationResponse response = service.login(request);
             return ResponseEntity.ok(response);
 
-        }catch (userNameNotFoundException e){
+        }catch (userNameNotFoundException  | InvalidCredentialException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 

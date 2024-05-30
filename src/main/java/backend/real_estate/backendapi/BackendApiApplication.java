@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @SpringBootApplication
 //@EnableScheduling
-@EnableWebSecurity
+//@EnableWebSecurity
 public class BackendApiApplication {
 //	@Autowired
 //	private EmailSenderService service;
