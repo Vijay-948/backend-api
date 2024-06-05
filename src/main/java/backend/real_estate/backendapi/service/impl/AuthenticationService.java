@@ -15,6 +15,7 @@ import backend.real_estate.backendapi.service.EmailService;
 import backend.real_estate.backendapi.service.OtpAuthService;
 import jakarta.mail.MessageRemovedException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService implements OtpAuthService {
 
     private final UserRepository userRepository;
@@ -126,9 +128,12 @@ public class AuthenticationService implements OtpAuthService {
             UserBo user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new userNameNotFoundException("Invalid username or password"));
 
-            if(!user.getActive()){
+            if(!user.getActive()) {
+                log.info("user status", user.getActive());
                 throw new InvalidCredentialException("Invalid username or password");
             }
+
+            log.info("user status", user.getActive());
 
             String jwtToken = jwtService.generateToken(user);
 
