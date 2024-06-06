@@ -3,6 +3,7 @@ package backend.real_estate.backendapi.service.impl;
 import backend.real_estate.backendapi.ExceptionHandling.*;
 import backend.real_estate.backendapi.ExceptionHandling.NoSuchFieldException;
 import backend.real_estate.backendapi.dto.OtpDto;
+import backend.real_estate.backendapi.dto.UserDetailsDto;
 import backend.real_estate.backendapi.entity.OtpBO;
 import backend.real_estate.backendapi.entity.Role;
 import backend.real_estate.backendapi.entity.UserBo;
@@ -13,19 +14,17 @@ import backend.real_estate.backendapi.request.AuthenticationResponse;
 import backend.real_estate.backendapi.request.RegisterRequest;
 import backend.real_estate.backendapi.service.EmailService;
 import backend.real_estate.backendapi.service.OtpAuthService;
-import jakarta.mail.MessageRemovedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,6 +223,14 @@ public class AuthenticationService implements OtpAuthService {
                 .build();
     }
 
+    @Override
+    public UserDetailsDto getFirstNameAndLastName() throws userNameNotFoundException {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserBo userBo = userRepository.findByEmail(email).orElseThrow(()-> new userNameNotFoundException("user Not Found"));
+
+        return new UserDetailsDto(userBo.getFirstName(), userBo.getLastName(), userBo.getEmail());
+    }
+
     private boolean isWithinTimeDiff(Date otpTimeStamp){
         if(otpTimeStamp == null) return false;
 
@@ -245,6 +252,8 @@ public class AuthenticationService implements OtpAuthService {
         return new String(otp);
     }
 
+
+
 //    public boolean isValidPassword(String password) {
 //        String passwordPattern = "^(?!\\s)(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@#$%^&+=!])(?!.*\\s).{8}$";
 //        return password.matches(passwordPattern);
@@ -264,7 +273,6 @@ public class AuthenticationService implements OtpAuthService {
 
         System.out.println("Deleted unverified users: " + unverifiedUsers.size());
     }
-
 
 
 

@@ -4,6 +4,7 @@ package backend.real_estate.backendapi.controller;
 import backend.real_estate.backendapi.ExceptionHandling.*;
 import backend.real_estate.backendapi.ExceptionHandling.NoSuchFieldException;
 import backend.real_estate.backendapi.dto.OtpDto;
+import backend.real_estate.backendapi.dto.UserDetailsDto;
 import backend.real_estate.backendapi.repository.UserRepository;
 import backend.real_estate.backendapi.request.AuthenticationRequest;
 import backend.real_estate.backendapi.request.AuthenticationResponse;
@@ -64,6 +65,11 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 
+    }
+
+    @GetMapping("/user")
+    public UserDetailsDto getUserInfo() throws userNameNotFoundException {
+        return service.getFirstNameAndLastName();
     }
 
 
