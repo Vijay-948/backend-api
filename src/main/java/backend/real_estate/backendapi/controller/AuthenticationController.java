@@ -68,8 +68,8 @@ public class AuthenticationController {
     }
 
     @GetMapping("/user")
-    public UserDetailsDto getUserInfo() throws userNameNotFoundException {
-        return service.getFirstNameAndLastName();
+    public UserDetailsDto getUserInfo(@RequestParam String token) throws userNameNotFoundException {
+        return service.getFirstNameAndLastName(token);
     }
 
 

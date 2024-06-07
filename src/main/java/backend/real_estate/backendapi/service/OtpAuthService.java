@@ -11,5 +11,5 @@ public interface OtpAuthService {
 
     AuthenticationResponse verifyOtp(OtpDto otpDto);
 
-     UserDetailsDto getFirstNameAndLastName() throws userNameNotFoundException;
+     UserDetailsDto getFirstNameAndLastName(String token) throws userNameNotFoundException;
 }

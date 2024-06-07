@@ -224,8 +224,8 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     @Override
-    public UserDetailsDto getFirstNameAndLastName() throws userNameNotFoundException {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public UserDetailsDto getFirstNameAndLastName(String token) throws userNameNotFoundException {
+        String email  = jwtService.extractUserName(token);
         UserBo userBo = userRepository.findByEmail(email).orElseThrow(()-> new userNameNotFoundException("user Not Found"));
 
         return new UserDetailsDto(userBo.getFirstName(), userBo.getLastName(), userBo.getEmail());
