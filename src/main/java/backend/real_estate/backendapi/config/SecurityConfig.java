@@ -66,6 +66,23 @@ public class SecurityConfig {
 
 
     @Bean
+    public FilterRegistrationBean<LogFilter> loggingFilter() {
+        FilterRegistrationBean<LogFilter> registrationBean = new FilterRegistrationBean<>();
+
+        LogFilter logFilter = new LogFilter();
+        logFilter.setIncludeQueryString(true);
+        logFilter.setIncludeHeaders(true);
+        logFilter.setIncludePayload(true);
+        logFilter.setMaxPayloadLength(10000);
+
+        registrationBean.setFilter(logFilter);
+        registrationBean.addUrlPatterns("/*");
+
+        return registrationBean;
+    }
+
+
+    @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
@@ -78,6 +95,5 @@ public class SecurityConfig {
             }
         };
     }
-
 
 }

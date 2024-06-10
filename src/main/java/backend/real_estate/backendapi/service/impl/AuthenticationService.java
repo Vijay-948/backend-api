@@ -261,7 +261,7 @@ public class AuthenticationService implements OtpAuthService {
 
     // Scheduled method to delete unverified users
 //    @Scheduled(cron = "0 0 0 * * ?") // This cron expression means the task will run every day at midnight
-    @Scheduled(cron = "0 * * * * *") // This cron expression means the task will run every minute
+    @Scheduled(cron = "0 0 0 ? * SUN") //This cron expression means the task will run every Sunday at midnight
     @Transactional
     public void deleteUnverifiedUsers() {
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusMinutes(1);
