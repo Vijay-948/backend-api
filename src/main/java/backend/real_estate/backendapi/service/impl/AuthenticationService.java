@@ -14,6 +14,7 @@ import backend.real_estate.backendapi.request.AuthenticationResponse;
 import backend.real_estate.backendapi.request.RegisterRequest;
 import backend.real_estate.backendapi.service.EmailService;
 import backend.real_estate.backendapi.service.OtpAuthService;
+import backend.real_estate.backendapi.utils.CommonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -60,15 +61,7 @@ public class AuthenticationService implements OtpAuthService {
         if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
             throw new NoSuchFieldException("All fields are required");
         }
-//
-//        if(request.getFirstName().length() < 3){
-//            throw new NoSuchFieldException("First name should be at least three characters");
-//        }
-//
-//        if(request.getLastName().length() < 4){
-//            throw new EmailAlreadyExistException("Last name should be at least four characters");
-//        }
-//
+
         if(!isValidEmail(request.getEmail())){
             throw new InvalidEmailException("Invalid email format");
         }
@@ -109,7 +102,7 @@ public class AuthenticationService implements OtpAuthService {
         }
 
 
-//        sendVerificationCode(request.getEmail());
+
     }
 
     public AuthenticationResponse  login(AuthenticationRequest request) throws userNameNotFoundException {
@@ -160,7 +153,7 @@ public class AuthenticationService implements OtpAuthService {
         String subject = "One Time Password for Signup";
         String fileName = "otp_verification.html";
 
-        String otp = generateOTP(6);
+        String otp = CommonUtil.generateOTP(6);
 
         try{
             String content = StreamUtils.copyToString(new ClassPathResource(fileName).getInputStream(), Charset.defaultCharset());
@@ -240,17 +233,7 @@ public class AuthenticationService implements OtpAuthService {
         return currentTime.isBefore(storedTime) || currentTime.equals(storedTime);
     }
 
-    public String generateOTP(int length){
-        String numbers = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-        char[] otp = new char[length];
 
-        for(int i = 0; i < otp.length; i++){
-            otp[i] = numbers.charAt(random.nextInt(numbers.length()));
-        }
-
-        return new String(otp);
-    }
 
 
 
