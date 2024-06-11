@@ -3,15 +3,24 @@ package backend.real_estate.backendapi.service.impl;
 import backend.real_estate.backendapi.ExceptionHandling.ForgotPasswordExpection;
 import backend.real_estate.backendapi.entity.OtpBO;
 import backend.real_estate.backendapi.entity.UserBo;
+import backend.real_estate.backendapi.repository.OtpRepository;
 import backend.real_estate.backendapi.repository.UserRepository;
 import backend.real_estate.backendapi.request.ResetPassword;
 import backend.real_estate.backendapi.request.VerifyOtp;
 import backend.real_estate.backendapi.service.EmailService;
+import backend.real_estate.backendapi.utils.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.webjars.NotFoundException;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
 
@@ -21,8 +30,10 @@ public class ForgotPasswordService {
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
     private EmailService emailService;
-
     private JwtService jwtService;
+
+    @Autowired
+    private OtpRepository otpRepository;
 
 
     public ForgotPasswordService(UserRepository userRepository, EmailService emailService, PasswordEncoder passwordEncoder, JwtService jwtService) {
@@ -32,76 +43,34 @@ public class ForgotPasswordService {
         this.jwtService = jwtService;
     }
 
-    public void sendOtpToEmail(String email) throws ForgotPasswordExpection {
+    public void sendOtpToEmail(String email) throws ForgotPasswordExpection, IOException {
         Optional<UserBo> userOptional = userRepository.findByEmail(email);
 
-//        if(userOptional.isPresent()){
-//            OtpBO user = userOptional.get();
-//            String otp = generateOTP();
-//            user.setOtp(otp);
-//            userRepository.save(user);
-//            sendOtpByEmail(email, otp);
-//        } else {
-//            throw  new ForgotPasswordExpection("Invalid email " + email);
-//        }
+        if(userOptional.isPresent()){
+            UserBo userBo = userOptional.get();
+            String subject = "One Time Password for Reset Pin";
+            String fileName = "otp_verification.html";
+
+            String otp = CommonUtil.generateOTP(6);
+            String content = StreamUtils.copyToString(new ClassPathResource(fileName).getInputStream(), Charset.defaultCharset());
+            content = content.replace("[OTP]", otp);
+            content = content.replace("[NAME]", userBo.getFirstName() + " " + userBo.getLastName());
+
+            emailService.sendEmail(email, subject, content);
+
+            OtpBO otpBO = new OtpBO();
+            otpBO.setEmail(email);
+            otpBO.setVerificationCode(otp);
+
+            LocalDateTime presentTime = LocalDateTime.now().plusMinutes(10);
+            Date expiryTime = Date.from(presentTime.atZone(ZoneId.systemDefault()).toInstant());
+            otpBO.setOtpExpiryTime(expiryTime);
+            otpRepository.save(otpBO);
+        } else {
+            throw  new ForgotPasswordExpection("Invalid email " + email);
+        }
     }
 
-    private String generateOTP() {
-        Random random = new Random();
-        int otp = random.nextInt(999999);
-
-        String otpString = String.valueOf(otp);
-
-        System.out.println("Generated OTp " + otpString);
-
-        return otpString;
-    }
-
-    private void sendOtpByEmail(String email, String otp){
-        String subject = "Password Reset Otp";
-        String body = "Your Otp" + otp;
-
-        emailService.sendEmail(email, subject, body);
-    }
-
-    public void verifyOtp(VerifyOtp verifyOtp) throws ForgotPasswordExpection{
-        String userEmail = verifyOtp.getEmail();
-        String userEnteredOtp = verifyOtp.getOtp();
-        Optional<UserBo> user = userRepository.findByEmail(userEmail);
-
-//        if(user.isPresent()){
-//            UserBo userBo = user.get();
-//            String storedOtp = userBo.getOtp();
-//
-//            if(!userEnteredOtp.equals(storedOtp)){
-//                throw new ForgotPasswordExpection("Invalid Otp");
-//            }
-//
-//            userBo.setOtp(null);
-//            userRepository.save(userBo);
-//        }
-
-        // this method is only for verifying only otp based not an email;
-//        String userEnteredOtp = verifyOtp.getOtp();
-//
-//        Optional<UserBo> userOptional = userRepository.findByOtp(userEnteredOtp);
-//
-//        if (userOptional.isPresent()) {
-//            UserBo user = userOptional.get();
-//            String storedOtp = user.getOtp(); // Assuming there's a method to get the OTP from the UserBo class
-//
-//            if (!userEnteredOtp.equals(storedOtp)) {
-//                throw new ForgotPasswordException("Invalid OTP");
-//            }
-//
-//            // Clear the OTP after successful verification
-//            user.setOtp(null);
-//            userRepository.save(user);
-//        } else {
-//            throw new ForgotPasswordException("Invalid OTP");
-//        }
-
-    }
 
     public void resetPassword(ResetPassword resetPassword) throws ForgotPasswordExpection {
         Optional<UserBo> user = userRepository.findByEmail(resetPassword.getEmail());
@@ -121,9 +90,6 @@ public class ForgotPasswordService {
         String newToken = jwtService.generateToken(userBo);
 
         userRepository.save(userBo);
-
-
-
     }
 
 }

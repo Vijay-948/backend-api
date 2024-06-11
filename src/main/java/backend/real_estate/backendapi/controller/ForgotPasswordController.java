@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
-@RequestMapping("/forgot")
+@RequestMapping("/reset")
 public class ForgotPasswordController {
 
     private final ForgotPasswordService forgotPasswordService;
@@ -26,29 +28,20 @@ public class ForgotPasswordController {
         this.forgotPasswordService = forgotPasswordService;
     }
 
-    @PostMapping("/password")
+    @PostMapping("/sent")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) throws ForgotPasswordExpection {
 //        System.out.println(forgotPasswordService.sendOtpToEmail(forgotPasswordRequest.getEmail()));
         try {
             forgotPasswordService.sendOtpToEmail(forgotPasswordRequest.getEmail());
             return ResponseEntity.ok("Otp Sent Successfully");
 
-        }catch (ForgotPasswordExpection e){
+        }catch (ForgotPasswordExpection | IOException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    @PostMapping("/verifyOtp")
-    public ResponseEntity<String> verifyOtp(@RequestBody VerifyOtp verifyOtp){
-        try{
-            forgotPasswordService.verifyOtp(verifyOtp);
-            return ResponseEntity.ok("OTP Verified Successfully");
-        }catch (ForgotPasswordExpection e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
 
-    @PostMapping("/resetPassword")
+    @PostMapping("/password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPassword resetPassword){
         try {
             forgotPasswordService.resetPassword(resetPassword);
