@@ -57,29 +57,6 @@ public class AuthenticationService implements OtpAuthService {
 
     public void register(RegisterRequest request) throws Exception, EmailAlreadyExistException, NoSuchFieldException, InvalidEmailException, InvalidPasswordException {
 
-        if(StringUtils.isAnyBlank(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword())){
-            throw new NoSuchFieldException("All fields are required");
-        }
-//
-//        if(request.getFirstName().length() < 3){
-//            throw new NoSuchFieldException("First name should be at least three characters");
-//        }
-//
-//        if(request.getLastName().length() < 4){
-//            throw new EmailAlreadyExistException("Last name should be at least four characters");
-//        }
-//
-        if(!isValidEmail(request.getEmail())){
-            throw new InvalidEmailException("Invalid email format");
-        }
-
-        if (!request.getEmail().toLowerCase().endsWith("@gmail.com")) {
-            throw new IllegalArgumentException("Email must end with '@gmail.com'");
-        }
-
-//        if(!isValidPassword(request.getPassword())){
-//            throw new InvalidPasswordException("Invalid Password format");
-//        }
 
         Optional<UserBo> existingEmail = userRepository.findByEmail(request.getEmail());
 
@@ -145,9 +122,10 @@ public class AuthenticationService implements OtpAuthService {
     }
 
     public boolean isValidEmail(String email) {
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@gmail\\.com$";
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,7}$";
         return email.matches(emailRegex);
     }
+
 
     @Override
     public void  sendVerificationCode(String email) {
