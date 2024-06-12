@@ -79,7 +79,7 @@ public class AuthenticationService implements OtpAuthService {
                     .password(passwordEncoder.encode(request.getPassword()))
                     .active(false)
                     .createdOn(new Date())
-                    .role(Role.ADMIN)
+                    .role(Role.USER)
                     .build();
             userRepository.save(user);
 
