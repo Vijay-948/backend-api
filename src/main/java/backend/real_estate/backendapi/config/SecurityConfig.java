@@ -43,7 +43,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth->auth
-                        .requestMatchers("/api/v1/auth/**", "/v2/api-docs", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**")
+                        .requestMatchers("/api/v1/auth/**", "/reset/**", "/v2/api-docs", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated()
@@ -87,7 +87,7 @@ public class SecurityConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**")
+                registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*")
