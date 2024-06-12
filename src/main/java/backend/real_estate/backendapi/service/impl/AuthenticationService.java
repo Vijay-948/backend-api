@@ -127,7 +127,6 @@ public class AuthenticationService implements OtpAuthService {
         return email.matches(emailRegex);
     }
 
-
     @Override
     public void  sendVerificationCode(String email) {
 //        String email = otpRequest.get("email");
