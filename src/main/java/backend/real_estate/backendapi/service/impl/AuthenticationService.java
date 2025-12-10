@@ -90,7 +90,7 @@ public class AuthenticationService implements OtpAuthService {
 
     }
 
-    public AuthenticationResponse  login(AuthenticationRequest request) throws userNameNotFoundException {
+    public AuthenticationResponse login(AuthenticationRequest request) throws userNameNotFoundException {
         try {
             System.out.println("Received AuthenticationRequest: " + request.getEmail());
 
